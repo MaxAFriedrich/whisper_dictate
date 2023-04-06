@@ -132,10 +132,9 @@ def transcribe_main(frame_size: float):
 def output(frame_no: int, text: str):
     print(f"{frame_no}: {text}")
 
-
-def main(block_size: float = 3):
+def listener(block_size:float):
     global STOP
-    threading.Thread(target=transcribe_main, args=[block_size]).start()
+    global audio_buffer
     print("Listening...")
     try:
         frame_number = 0
@@ -147,6 +146,11 @@ def main(block_size: float = 3):
         STOP = True
 
     print("Not listening")
+
+def main(block_size: float = 3):
+    threading.Thread(target=transcribe_main, args=[block_size]).start()
+    threading.Thread(target=listener,args=[block_size]).start()
+
 
 
 if __name__ == "__main__":
