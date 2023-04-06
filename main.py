@@ -3,8 +3,7 @@ import threading
 import numpy as np
 import sounddevice as sd
 import soundfile as sf
-from pynput import keyboard
-
+from pyautogui import typewrite
 import whisper
 from whisper.audio import SAMPLE_RATE
 
@@ -91,6 +90,7 @@ def transcribe_main(frame_size: float):
     frame_counter = 0
     current_start = None
     current_end = None
+    final_text = None
     print("Transcribing")
     while not STOP:
         audio = audio_buffer.get(frame_counter)
@@ -107,14 +107,18 @@ def transcribe_main(frame_size: float):
                 if current_start == None:
                     output(frame_counter, text)
                     current_end = current_start = frame_counter
+                    final_text = text
                 else:
                     current_end = frame_counter
                     new_text = bulk_transcribe(current_start, current_end)
                     if not (new_text == None or new_text == ""):
                         text = new_text
                     output(frame_counter, text)
-                stop_counter = 0
+                    final_text = text
             else:
+                if final_text != None:
+                    typewrite(final_text)
+                    final_text = None
                 if current_start == None or current_end == None:
                     audio_buffer.pop(frame_counter)
                 else:
