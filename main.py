@@ -4,6 +4,7 @@ import numpy as np
 import sounddevice as sd
 import soundfile as sf
 from pyautogui import typewrite
+
 import whisper
 from whisper.audio import SAMPLE_RATE
 
@@ -68,13 +69,14 @@ from time import sleep
 def check_for_repeating_chars(text):
     if len(text) == 0:
         return False
-    first_chunk = text[:len(text)//2]
+    first_chunk = text[: len(text) // 2]
     for i in range(len(first_chunk)):
         chunk_size = i + 1
-        chunks = [text[j:j+chunk_size] for j in range(0, len(text), chunk_size)]
+        chunks = [text[j : j + chunk_size] for j in range(0, len(text), chunk_size)]
         if len(set(chunks)) == 1:
             return True  # All chunks are the same
     return False  # No repeating pattern found
+
 
 def bulk_transcribe(start: int, end: int):
     global audio_buffer
