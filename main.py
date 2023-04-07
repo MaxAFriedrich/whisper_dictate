@@ -8,9 +8,9 @@ from pyautogui import typewrite
 import whisper
 from whisper.audio import SAMPLE_RATE
 
-MODEL = whisper.load_model("base.en")
+# MODEL = whisper.load_model("base.en")
 STOP = False
-
+newest_frame = 0
 
 def write_audio_file(array, filename):
     # Used for debugging
@@ -78,72 +78,68 @@ def check_for_repeating_chars(text):
     return False  # No repeating pattern found
 
 
-def bulk_transcribe(start: int, end: int):
+def bulk_transcribe(start: int, end: int,trans_func):
     global audio_buffer
     full_audio = np.array([], dtype=np.float32)
     for i in range(start, end + 1):
         full_audio = np.concatenate([full_audio, audio_buffer.get(i)])
-    return transcribe(end, full_audio)
+    return trans_func(end, full_audio)
 
 
-# np.concatenate([old_audio, audio])
-def transcribe_main(frame_size: float):
-    global STOP
-    frame_counter = 0
-    current_start = None
-    current_end = None
+def transcribe_main(frame_size: float,trans_func):
+    global STOP, newest_frame, audio_buffer
+    current_start = 0
+    current_end = 0
     final_text = None
+    last_text = 0
     print("Transcribing")
     while not STOP:
-        audio = audio_buffer.get(frame_counter)
-        if audio is None:
+        audio = audio_buffer.get(current_start)
+        audio1 = audio_buffer.get(current_end)
+        if audio is None or audio1 is None:
             sleep(frame_size / 3)
         else:
-            text = transcribe(frame_counter, audio)
+            current_end = newest_frame
+
+            text = bulk_transcribe(current_start,current_end,trans_func)
             if not (
                 text == ""
                 or text == None
                 or all(c in ". " for c in text)
                 or check_for_repeating_chars(text)
+                or final_text == text
             ):
-                if current_start == None:
-                    output(frame_counter, text)
-                    current_end = current_start = frame_counter
-                    final_text = text
-                else:
-                    current_end = frame_counter
-                    new_text = bulk_transcribe(current_start, current_end)
-                    if not (new_text == None or new_text == ""):
-                        text = new_text
-                    output(frame_counter, text)
-                    final_text = text
+                final_text = text
+                last_text = 0
+                output(current_end,text)
             else:
-                if final_text != None:
+                last_text -=1
+                if last_text > -frame_size:
+                    continue
+                if final_text!=None:
                     typewrite(final_text)
-                    final_text = None
-                if current_start == None or current_end == None:
-                    audio_buffer.pop(frame_counter)
-                else:
-                    for i in range(current_start, current_end + 1):
+                    final_text=None
+                current_start = current_end+1
+                for i in range(current_start, current_end):
                         audio_buffer.pop(i)
-                current_start = current_end = None
-            frame_counter += 1
     print("Not transcribing")
 
 
 def output(frame_no: int, text: str):
     print(f"{frame_no}: {text}")
 
-
-def main(block_size: float = 3):
-    threading.Thread(target=transcribe_main, args=[block_size]).start()
+import client
+def main(block_size: float =3 ):
+    threading.Thread(target=transcribe_main, args=[block_size,client.client]).start()
     global STOP
     global audio_buffer
+    global newest_frame
     print("Listening...")
     try:
         frame_number = 0
         while not STOP:
             audio_buffer[frame_number] = record(block_size)
+            newest_frame = frame_number
             frame_number += 1
 
     except KeyboardInterrupt:
