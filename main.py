@@ -2,7 +2,7 @@ import argparse
 import threading
 
 
-def main(trans_func, host, port, block_size: float = 0.1):
+def main(trans_func, host, port, block_size: float = 1):
     from output import Output
     from record import record
 
@@ -22,7 +22,7 @@ def main(trans_func, host, port, block_size: float = 0.1):
     print("Not listening")
 
 
-def run_server(host,port, model):
+def run_server(host, port, model):
     from server import server
     from transcribe import Transcribe
 
@@ -30,7 +30,10 @@ def run_server(host,port, model):
     server(port=port, address=host, trans_func=t.run)
 
 
-def run_client(host,port,):
+def run_client(
+    host,
+    port,
+):
     from client import client
 
     main(client, host, port)
@@ -83,7 +86,7 @@ if __name__ == "__main__":
     if role == "server":
         # Run server code with specified port
         print("Running as server with port:", port, "and host:", host)
-        run_server(host,port, model)
+        run_server(host, port, model)
     elif role == "client":
         # Run client code with specified port and host
         print("Running as client with port:", port, "and host:", host)

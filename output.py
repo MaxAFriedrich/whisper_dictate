@@ -3,8 +3,15 @@ from time import sleep
 import numpy as np
 from pyautogui import typewrite
 
+
 class Output:
-    def __init__(self, trans_func, host:str = "localhost", port:int=8000,newest_frame: int = 0) -> None:
+    def __init__(
+        self,
+        trans_func,
+        host: str = "localhost",
+        port: int = 8000,
+        newest_frame: int = 0,
+    ) -> None:
         self.stop = False
         self.newest_frame = newest_frame
         self.audio_buffer = {}
@@ -27,10 +34,12 @@ class Output:
         full_audio = np.array([], dtype=np.float32)
         for i in range(start, end + 1):
             full_audio = np.concatenate([full_audio, self.audio_buffer.get(i)])
-        text = self.trans_func(end, full_audio,host = self.host, port=self.port)
-        return text 
+        text = self.trans_func(end, full_audio, host=self.host, port=self.port)
+        return text
 
     def transcribe_main(self, frame_size: float):
+        DEFAULT_SLEEP = frame_size / 3
+        sleep_time = DEFAULT_SLEEP
         current_start = 0
         current_end = 0
         final_text = None
@@ -40,7 +49,7 @@ class Output:
             audio = self.audio_buffer.get(current_start)
             audio1 = self.audio_buffer.get(current_end)
             if audio is None or audio1 is None:
-                sleep(frame_size / 3)
+                sleep(sleep_time)
             else:
                 current_end = self.newest_frame
 
@@ -55,9 +64,10 @@ class Output:
                     final_text = text
                     last_text = 0
                     self.output(current_end, text)
+                    sleep_time += frame_size
                 else:
                     last_text -= 1
-                    if last_text > -2:
+                    if last_text > -3:
                         continue
                     if final_text != None:
                         typewrite(final_text)
@@ -65,6 +75,7 @@ class Output:
                     for i in range(current_start, current_end):
                         self.audio_buffer.pop(i)
                     current_start = current_end + 1
+                    sleep_time = DEFAULT_SLEEP
 
         print("Not transcribing")
 
