@@ -114,7 +114,7 @@ def transcribe_main(frame_size: float,trans_func):
                 output(current_end,text)
             else:
                 last_text -=1
-                if last_text > -frame_size:
+                if last_text > -2:
                     continue
                 if final_text!=None:
                     typewrite(final_text)
@@ -129,7 +129,7 @@ def output(frame_no: int, text: str):
     print(f"{frame_no}: {text}")
 
 import client
-def main(block_size: float =3 ):
+def main(block_size: float =0.1 ):
     threading.Thread(target=transcribe_main, args=[block_size,client.client]).start()
     global STOP
     global audio_buffer
