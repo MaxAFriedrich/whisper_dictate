@@ -3,12 +3,16 @@ from time import sleep
 import numpy as np
 from pyautogui import typewrite
 
+from record import write_audio_file
 
 class Output:
-    def __init__(self, newest_frame: int = 0) -> None:
+    def __init__(self, trans_func, host:str = "localhost", port:int=8000,newest_frame: int = 0) -> None:
         self.stop = False
         self.newest_frame = newest_frame
         self.audio_buffer = {}
+        self.trans_func = trans_func
+        self.port = port
+        self.host = host
 
     def check_for_repeating_chars(self, text):
         if len(text) == 0:
@@ -21,15 +25,15 @@ class Output:
                 return True  # All chunks are the same
         return False  # No repeating pattern found
 
-    def bulk_transcribe(self, start: int, end: int, trans_func):
-        global audio_buffer
+    def bulk_transcribe(self, start: int, end: int):
         full_audio = np.array([], dtype=np.float32)
         for i in range(start, end + 1):
             full_audio = np.concatenate([full_audio, self.audio_buffer.get(i)])
-        return trans_func(end, full_audio)
+        text = self.trans_func(end, full_audio,host = self.host, port=self.port)
+        write_audio_file(full_audio,f"{start}_{end}_{text}.wav")
+        return text 
 
-    def transcribe_main(self, frame_size: float, trans_func):
-        global STOP, newest_frame, audio_buffer
+    def transcribe_main(self, frame_size: float):
         current_start = 0
         current_end = 0
         final_text = None
@@ -43,7 +47,7 @@ class Output:
             else:
                 current_end = self.newest_frame
 
-                text = self.bulk_transcribe(current_start, current_end, trans_func)
+                text = self.bulk_transcribe(current_start, current_end)
                 if not (
                     text == ""
                     or text == None
@@ -61,9 +65,10 @@ class Output:
                     if final_text != None:
                         typewrite(final_text)
                         final_text = None
-                    current_start = current_end + 1
                     for i in range(current_start, current_end):
                         self.audio_buffer.pop(i)
+                    current_start = current_end + 1
+
         print("Not transcribing")
 
     def output(self, frame_no: int, text: str):

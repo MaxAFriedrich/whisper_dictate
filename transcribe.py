@@ -1,8 +1,9 @@
 import whisper
+from record import write_audio_file
 class Transcribe:
     def __init__(self,model) -> None:
-        self.model = model
-    def run(self,frame_number: int, audio):
+        self.model = whisper.load_model(model)
+    def run(self,frame_number: int, audio, host:str="",port:int=0):
         # concatinate audio
         audio = whisper.pad_or_trim(audio)
     
