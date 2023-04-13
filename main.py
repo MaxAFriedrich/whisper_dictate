@@ -2,7 +2,7 @@ import argparse
 import threading
 
 
-def main(trans_func, host, port, block_size: float = 1):
+def main(trans_func, host, port, block_size: float = 0.3):
     from output import Output
     from record import record
 
