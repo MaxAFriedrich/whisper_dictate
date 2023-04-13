@@ -1,9 +1,11 @@
-import main
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import numpy as np
 import json
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
+    def __init__(self, *args, trans_func, **kwargs):
+        self.trans_func = trans_func
+        super().__init__(*args, **kwargs)
     
     def do_POST(self):
         content_len = int(self.headers.get('content-length', 0))
@@ -16,8 +18,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         int_val = data_dict['int_val']
         float_arr = np.array(data_dict['float_arr'], dtype='float32')
 
-        # Process the array and integer
-        result = main.transcribe(int_val, float_arr)
+        # Process the array and integer using the trans_func instance variable
+        result = self.trans_func(int_val, float_arr)
 
         # Convert the result to a string and encode it as JSON
         result_dict = {'result': result}
@@ -30,10 +32,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(result_json)
 
 
-def server(port=8000, address="localhost"):
-    httpd = HTTPServer((address, port), HTTPRequestHandler)
-    print('Server started at localhost:{}...'.format(port))
+def server(port=8000, address="localhost", trans_func=None):
+    httpd = HTTPServer((address, port), lambda *args, **kwargs: HTTPRequestHandler(*args, trans_func=trans_func, **kwargs))
+    print('Server started at {}:{}...'.format(address, port))
     httpd.serve_forever()
 
-if __name__ == "__main__":
-    server()

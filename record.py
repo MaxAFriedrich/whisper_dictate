@@ -1,6 +1,7 @@
 import sounddevice as sd
 import soundfile as sf
 from whisper.audio import SAMPLE_RATE
+import numpy as np
 
 def write_audio_file(array, filename):
     # Used for debugging

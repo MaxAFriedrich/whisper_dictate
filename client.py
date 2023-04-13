@@ -1,8 +1,8 @@
-import numpy as np
 import json
 import urllib.request
 
-def client(int_val, float_arr, url='http://localhost:8000'):
+def client(int_val, float_arr, host:str = "localhost",port:int = 8000):
+    url = f"http://{host}:{str(port)}"
     # Convert the integer and array to a dictionary
     data_dict = {'int_val': int_val, 'float_arr': float_arr.tolist()}
 
