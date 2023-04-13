@@ -3,8 +3,6 @@ from time import sleep
 import numpy as np
 from pyautogui import typewrite
 
-from record import write_audio_file
-
 class Output:
     def __init__(self, trans_func, host:str = "localhost", port:int=8000,newest_frame: int = 0) -> None:
         self.stop = False
@@ -30,7 +28,6 @@ class Output:
         for i in range(start, end + 1):
             full_audio = np.concatenate([full_audio, self.audio_buffer.get(i)])
         text = self.trans_func(end, full_audio,host = self.host, port=self.port)
-        write_audio_file(full_audio,f"{start}_{end}_{text}.wav")
         return text 
 
     def transcribe_main(self, frame_size: float):
